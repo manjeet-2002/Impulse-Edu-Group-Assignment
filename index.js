@@ -11,31 +11,6 @@ app.get('/',(req,res)=>{
     res.json({message:"Hello World"});
 });
 
-//analysing the blogs data and caching the result
-const analyse = _.memoize((blogs) => {
-
-    const totalBlogs = blogs.length;
-    const blogWithLongestTitle = _.maxBy(blogs, (item) => item.title.length);
-    const blogsWithPrivacyInTitle = _.filter(blogs, (item) => item.title.toLowerCase().includes('privacy')); //case-insensitive search
-    const numberOfblogsWithPrivacyInTitle = _.size(blogsWithPrivacyInTitle);
-
-    //creating an array of unique titles
-    const uniqueTitles = _.uniq(_.map(blogs, 'title'));
-
-    return {totalBlogs, blogWithLongestTitle, numberOfblogsWithPrivacyInTitle, uniqueTitles}
-});
-
-//search the blogs with {query} in their title and caching the result
-const searchQuery = _.memoize((query, blogs) => {
-    return _.filter(blogs, (item) => item.title.toLowerCase().includes(query))
-})
-
-//clearing cache at midnight
-cron.schedule('0 0 * * *', () => {
-    analyse.cache.clear();
-    searchQuery.cache.clear();
-},{timezone:'Asia/Calcutta'});
-
 //blog-stats route
 app.get('/api/blog-stats',async (req,res)=>{
 
@@ -47,10 +22,16 @@ app.get('/api/blog-stats',async (req,res)=>{
         //getting blogs out of the response
         const usableResponse = await result.json();
         const blogs = usableResponse.blogs;
-        console.log(blogs);
+        const totalBlogs = blogs.length;
+        const blogWithLongestTitle = _.maxBy(blogs, (item) => item.title.length);
+        const blogsWithPrivacyInTitle = _.filter(blogs, (item) => item.title.toLowerCase().includes('privacy')); //case-insensitive search
+        const numberOfblogsWithPrivacyInTitle = _.size(blogsWithPrivacyInTitle);
+    
+        //creating an array of unique titles
+        const uniqueTitles = _.uniq(_.map(blogs, 'title'));
 
-        const data = analyse(blogs);      //analysing the data
-        console.log("data = " + data);
+        const data = {totalBlogs, blogWithLongestTitle, numberOfblogsWithPrivacyInTitle, uniqueTitles}
+      
         res.status(200).json(data);
     } 
     catch(error){
@@ -72,7 +53,7 @@ app.get('/api/:query', async (req,res) => {
         const usableResponse = await result.json();
         const blogs = usableResponse.blogs;
 
-        const blogsWithQueryInTitle = searchQuery(query, blogs);
+        const blogsWithQueryInTitle = _.filter(blogs, (item) => item.title.toLowerCase().includes(query))
         
         res.status(200).json({blogsWithQueryInTitle});
         
