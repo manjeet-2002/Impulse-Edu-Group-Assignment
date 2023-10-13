@@ -34,7 +34,7 @@ const searchQuery = _.memoize((query, blogs) => {
 cron.schedule('0 0 * * *', () => {
     analyse.cache.clear();
     searchQuery.cache.clear();
-});
+},{timezone:'Asia/Calcutta'});
 
 //blog-stats route
 app.get('/api/blog-stats',async (req,res)=>{
