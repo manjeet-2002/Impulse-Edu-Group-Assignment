@@ -47,9 +47,10 @@ app.get('/api/blog-stats',async (req,res)=>{
         //getting blogs out of the response
         const usableResponse = await result.json();
         const blogs = usableResponse.blogs;
+        console.log(blogs);
 
         const data = analyse(blogs);      //analysing the data
-        
+        console.log("data = " + data);
         res.status(200).json(data);
     } 
     catch(error){
