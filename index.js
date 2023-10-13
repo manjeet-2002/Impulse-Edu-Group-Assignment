@@ -1,6 +1,6 @@
 const express = require('express');
 const _ = require('lodash');
-const fetch = require("node-fetch");
+import fetch from "node-fetch";
 
 const app = express();
 
